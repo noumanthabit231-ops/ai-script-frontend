@@ -8,10 +8,7 @@ module.exports = {
   },
   style: {
     postcss: {
-      plugins: [
-        require('tailwindcss'),
-        require('autoprefixer'),
-      ],
+      mode: 'file', // Это заставит craco использовать созданный выше postcss.config.js
     },
   },
 };
