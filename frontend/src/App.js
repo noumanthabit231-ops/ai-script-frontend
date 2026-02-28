@@ -846,6 +846,7 @@ const DashboardLayout = ({ children }) => {
 const OverviewPage = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { subscription } = useAuth();
 
   useEffect(() => {
     fetchAnalytics();
