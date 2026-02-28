@@ -2312,7 +2312,7 @@ const AIAssistantPage = () => {
     setHint('');
 
     try {
-      // 1. Сначала готовим историю чата (этот код у тебя был выше)
+      // 1. Готовим данные
       const lines = chatText.split('\n').filter(line => line.trim());
       const chatHistory = lines.map(line => {
         const isClient = line.toLowerCase().includes('клиент:') || 
@@ -2322,7 +2322,7 @@ const AIAssistantPage = () => {
         return { role: isClient ? 'client' : 'manager', text };
       });
 
-      // 2. ОТПРАВЛЯЕМ ЗАПРОС (Теперь он ВНУТРИ блока try)
+      // 2. ОТПРАВЛЯЕМ ЗАПРОС (Теперь он внутри try)
       const response = await axios.post(
         `${BACKEND_URL}/api/ai/hint`,
         {
@@ -2334,7 +2334,7 @@ const AIAssistantPage = () => {
         }
       );
 
-      // 3. ОБНОВЛЯЕМ ДАННЫЕ
+      // 3. ОБНОВЛЯЕМ ИНТЕРФЕЙС
       setHint(response.data.hint);
       setHintsInfo({
         used: response.data.hints_used,
@@ -2342,20 +2342,21 @@ const AIAssistantPage = () => {
         extra: response.data.extra_hints || 0
       });
 
-      // Обновляем общий счетчик в Обзоре
-      setSubscription(prev => ({ 
-        ...prev, 
-        hints_used: response.data.hints_used 
-      }));
+      // Обновляем общую подписку, чтобы в блоке "Обзор" цифра 9 сменилась на реальную
+      if (setSubscription) {
+        setSubscription(prev => ({ 
+          ...prev, 
+          hints_used: response.data.hints_used 
+        }));
+      }
 
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.detail || 'Ошибка при получении подсказки');
     } finally {
-      // 4. В самом конце выключаем загрузку
       setLoading(false);
     }
-  }; // <--- ФУНКЦИЯ ЗАКРЫВАЕТСЯ ТОЛЬКО ЗДЕСЬ
+  }; // ТОЛЬКО ОДНА ЗАКРЫВАЮЩАЯ СКОБКА В КОНЦЕ
 
       const response = await axios.post(
         `${BACKEND_URL}/api/ai/hint`,
