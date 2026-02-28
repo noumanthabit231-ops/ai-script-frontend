@@ -875,7 +875,7 @@ const OverviewPage = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-6 rounded-sm border border-zinc-200">
-          <div className="text-3xl font-bold text-zinc-900 font-mono">{analytics?.total_hints || 0}</div>
+          <div className="text-3xl font-bold text-zinc-900 font-mono">{subscription?.hints_used || 0}</div>
           <div className="text-sm text-zinc-500 mt-1">Подсказок использовано</div>
         </div>
         <div className="bg-white p-6 rounded-sm border border-zinc-200">
