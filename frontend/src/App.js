@@ -2374,11 +2374,20 @@ const AIAssistantPage = () => {
       );
 
       setHint(response.data.hint);
+      setHint(response.data.hint);
       setHintsInfo({
         used: response.data.hints_used,
         limit: response.data.total_hints || response.data.hints_limit,
         extra: response.data.extra_hints || 0
       });
+
+      // === ВСТАВЛЯЙ СЮДА ===
+      setSubscription(prev => ({ 
+        ...prev, 
+        hints_used: response.data.hints_used 
+      }));
+      // =====================
+
     } catch (error) {
       alert(error.response?.data?.detail || 'Ошибка при получении подсказки');
     } finally {
