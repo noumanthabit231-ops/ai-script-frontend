@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const [subscription, setSubscription] = useState(null);
 const API = `https://ai-script-backend-production.up.railway.app/api`;
 
 // Auth Context
