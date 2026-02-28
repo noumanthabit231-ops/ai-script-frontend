@@ -2316,13 +2316,13 @@ const AIAssistantPage = () => {
       const lines = chatText.split('\n').filter(line => line.trim());
       const chatHistory = lines.map(line => {
         const isClient = line.toLowerCase().includes('клиент:') || 
-                        line.toLowerCase().includes('client:') ||
+                        line.toLowerCase().includes('client:') || 
                         !line.toLowerCase().includes('менеджер:');
         const text = line.replace(/^(клиент|client|менеджер|manager):/i, '').trim();
         return { role: isClient ? 'client' : 'manager', text };
       });
 
-      // 2. ОТПРАВЛЯЕМ ЗАПРОС (Теперь он внутри try)
+      // 2. ОТПРАВЛЯЕМ ЗАПРОС
       const response = await axios.post(
         `${BACKEND_URL}/api/ai/hint`,
         {
@@ -2334,7 +2334,7 @@ const AIAssistantPage = () => {
         }
       );
 
-      // 3. ОБНОВЛЯЕМ ИНТЕРФЕЙС
+      // 3. ОБНОВЛЯЕМ ИНТЕРФЕЙС И СИНХРОНИЗИРУЕМ СЧЕТЧИК
       setHint(response.data.hint);
       setHintsInfo({
         used: response.data.hints_used,
@@ -2342,7 +2342,6 @@ const AIAssistantPage = () => {
         extra: response.data.extra_hints || 0
       });
 
-      // Обновляем общую подписку, чтобы в блоке "Обзор" цифра 9 сменилась на реальную
       if (setSubscription) {
         setSubscription(prev => ({ 
           ...prev, 
@@ -2356,41 +2355,9 @@ const AIAssistantPage = () => {
     } finally {
       setLoading(false);
     }
-  }; // ТОЛЬКО ОДНА ЗАКРЫВАЮЩАЯ СКОБКА В КОНЦЕ
+  }; // КОНЕЦ ФУНКЦИИ GETHINT
 
-      const response = await axios.post(
-        `${BACKEND_URL}/api/ai/hint`,
-        {
-          chat_history: chatHistory,
-          use_ai_mode: true
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }
-      );
-
-      setHint(response.data.hint);
-      setHint(response.data.hint);
-      setHintsInfo({
-        used: response.data.hints_used,
-        limit: response.data.total_hints || response.data.hints_limit,
-        extra: response.data.extra_hints || 0
-      });
-
-      // === ВСТАВЛЯЙ СЮДА ===
-      setSubscription(prev => ({ 
-        ...prev, 
-        hints_used: response.data.hints_used 
-      }));
-      // =====================
-
-    } catch (error) {
-      alert(error.response?.data?.detail || 'Ошибка при получении подсказки');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ДАЛЬШЕ ИДУТ ДРУГИЕ ФУНКЦИИ (БЕЗ ДУБЛИКАТОВ!)
   const copyHint = () => {
     navigator.clipboard.writeText(hint);
     alert('Скопировано!');
@@ -2399,7 +2366,6 @@ const AIAssistantPage = () => {
   if (!subscription) {
     return <div className="p-8">Загрузка...</div>;
   }
-
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="mb-8">
