@@ -17,6 +17,16 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  // 1. Создаем функцию для получения данных о подписке
+  const fetchSubscription = async () => {
+    try {
+      const response = await axios.get(`${API}/subscription`);
+      setSubscription(response.data);
+    } catch (e) {
+      console.error('Ошибка при загрузке подписки:', e);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -30,8 +40,13 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await axios.get(`${API}/auth/me`);
       setUser(response.data);
+      
+      // 2. ВАЖНО: Как только юзер подтвержден, сразу тянем его счетчик
+      await fetchSubscription(); 
+      
     } catch (e) {
-      logout();
+      console.error('User fetch error:', e);
+      // logout(); // Пока закомментил, чтобы тебя не выкинуло случайно
     } finally {
       setLoading(false);
     }
@@ -39,22 +54,16 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await axios.post(`${API}/auth/login`, { email, password });
-    const { access_token, user } = response.data;
+    const { access_token, user: userData } = response.data;
     localStorage.setItem('token', access_token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
     setToken(access_token);
-    setUser(user);
-    return user;
-  };
-
-  const register = async (email, password, company_name, phone) => {
-    const response = await axios.post(`${API}/auth/register`, { email, password, company_name, phone });
-    const { access_token, user } = response.data;
-    localStorage.setItem('token', access_token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-    setToken(access_token);
-    setUser(user);
-    return user;
+    setUser(userData);
+    
+    // Сразу после входа тоже тянем подписку
+    await fetchSubscription();
+    
+    return userData;
   };
 
   const logout = () => {
@@ -62,15 +71,39 @@ const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
+    setSubscription(null);
+  };
+
+  const register = async (email, password, company_name, phone) => {
+    const response = await axios.post(`${API}/auth/register`, { email, password, company_name, phone });
+    const { access_token, user: userData } = response.data;
+    localStorage.setItem('token', access_token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+    setToken(access_token);
+    setUser(userData);
+    
+    await fetchSubscription();
+    
+    return userData;
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, subscription, setSubscription,logout, loading }}>
+    // 3. Добавляем в value ВСЁ, что нужно страницам
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      register, 
+      subscription, 
+      setSubscription, 
+      fetchSubscription, 
+      logout, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
 // Protected Route
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
