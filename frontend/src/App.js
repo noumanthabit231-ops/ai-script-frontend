@@ -2312,23 +2312,19 @@ const AIAssistantPage = () => {
     setHint('');
 
     try {
-      // 1. Парсим текст из поля ввода в массив для API
+      // 1. Сначала готовим историю чата (этот код у тебя был выше)
       const lines = chatText.split('\n').filter(line => line.trim());
       const chatHistory = lines.map(line => {
         const isClient = line.toLowerCase().includes('клиент:') || 
                         line.toLowerCase().includes('client:') ||
                         !line.toLowerCase().includes('менеджер:');
-        
         const text = line.replace(/^(клиент|client|менеджер|manager):/i, '').trim();
-        
-        return {
-          role: isClient ? 'client' : 'manager',
-          text: text
-        };
+        return { role: isClient ? 'client' : 'manager', text };
       });
 
-      // 2. Делаем запрос к бэкенду
-      const response = await axios.post(`${BACKEND_URL}/api/ai/hint`, 
+      // 2. ОТПРАВЛЯЕМ ЗАПРОС (Теперь он ВНУТРИ блока try)
+      const response = await axios.post(
+        `${BACKEND_URL}/api/ai/hint`,
         {
           chat_history: chatHistory,
           use_ai_mode: true
@@ -2338,17 +2334,15 @@ const AIAssistantPage = () => {
         }
       );
 
-      // 3. ОБНОВЛЯЕМ ДАННЫЕ (Самое важное!)
-      setHint(response.data.hint); // Текст ответа ИИ
-
-      // Обновляем мини-счётчик под кнопкой
+      // 3. ОБНОВЛЯЕМ ДАННЫЕ
+      setHint(response.data.hint);
       setHintsInfo({
         used: response.data.hints_used,
         limit: response.data.total_hints || response.data.hints_limit,
         extra: response.data.extra_hints || 0
       });
 
-      // === ВОТ ЭТА СТРОКА ОБНОВЛЯЕТ БЛОК "ОБЗОР" ===
+      // Обновляем общий счетчик в Обзоре
       setSubscription(prev => ({ 
         ...prev, 
         hints_used: response.data.hints_used 
@@ -2358,9 +2352,10 @@ const AIAssistantPage = () => {
       console.error(error);
       alert(error.response?.data?.detail || 'Ошибка при получении подсказки');
     } finally {
+      // 4. В самом конце выключаем загрузку
       setLoading(false);
     }
-  };
+  }; // <--- ФУНКЦИЯ ЗАКРЫВАЕТСЯ ТОЛЬКО ЗДЕСЬ
 
       const response = await axios.post(
         `${BACKEND_URL}/api/ai/hint`,
