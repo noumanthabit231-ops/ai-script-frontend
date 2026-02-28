@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const [subscription, setSubscription] = useState(null);
 const API = `https://ai-script-backend-production.up.railway.app/api`;
 
 // Auth Context
@@ -13,6 +12,7 @@ const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
+  const [subscription, setSubscription] = useState(null);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
