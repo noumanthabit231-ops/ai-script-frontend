@@ -2312,23 +2312,55 @@ const AIAssistantPage = () => {
     setHint('');
 
     try {
-      // Parse messages from text
+      // 1. Парсим текст из поля ввода в массив для API
       const lines = chatText.split('\n').filter(line => line.trim());
       const chatHistory = lines.map(line => {
-        // Try to detect if it's client or manager
         const isClient = line.toLowerCase().includes('клиент:') || 
                         line.toLowerCase().includes('client:') ||
                         !line.toLowerCase().includes('менеджер:');
         
-        const text = line
-          .replace(/^(клиент|client|менеджер|manager):/i, '')
-          .trim();
+        const text = line.replace(/^(клиент|client|менеджер|manager):/i, '').trim();
         
         return {
           role: isClient ? 'client' : 'manager',
           text: text
         };
       });
+
+      // 2. Делаем запрос к бэкенду
+      const response = await axios.post(`${BACKEND_URL}/api/ai/hint`, 
+        {
+          chat_history: chatHistory,
+          use_ai_mode: true
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+
+      // 3. ОБНОВЛЯЕМ ДАННЫЕ (Самое важное!)
+      setHint(response.data.hint); // Текст ответа ИИ
+
+      // Обновляем мини-счётчик под кнопкой
+      setHintsInfo({
+        used: response.data.hints_used,
+        limit: response.data.total_hints || response.data.hints_limit,
+        extra: response.data.extra_hints || 0
+      });
+
+      // === ВОТ ЭТА СТРОКА ОБНОВЛЯЕТ БЛОК "ОБЗОР" ===
+      setSubscription(prev => ({ 
+        ...prev, 
+        hints_used: response.data.hints_used 
+      }));
+
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.detail || 'Ошибка при получении подсказки');
+    } finally {
+      setLoading(false);
+    }
+  };
 
       const response = await axios.post(
         `${BACKEND_URL}/api/ai/hint`,
